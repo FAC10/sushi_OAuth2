@@ -3,6 +3,7 @@
 const hapi = require('hapi');
 const inert = require('inert');
 const server = new hapi.Server();
+const routes = require('./routes/routes');
 
 const fs = require('fs');
 
@@ -20,13 +21,7 @@ server.connection({
 server.register(inert, err => {
   if (err) throw err;
 
-  server.route({
-    method:'GET',
-    path: '/',
-    handler: {
-      file: 'public/index.html'
-    }
-  })
+  server.route(routes);
 })
 
 module.exports = server;
