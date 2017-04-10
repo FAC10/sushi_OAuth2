@@ -1,0 +1,24 @@
+{
+  "name": "oatuh_workshop",
+  "version": "1.0.0",
+  "description": "https://github.com/foundersandcoders/oauth-workshop/blob/master/step1.md",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/start.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FAC10/sushi_OAuth2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FAC10/sushi_OAuth2/issues"
+  },
+  "homepage": "https://github.com/FAC10/sushi_OAuth2#readme",
+  "dependencies": {
+    "hapi": "^16.1.1",
+    "inert": "^4.2.0"
+  }
+}
