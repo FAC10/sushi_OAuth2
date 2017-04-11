@@ -1,5 +1,7 @@
 const request = require('request');
 const env = require('env2')('./config.env');
+const qs = require('querystring');
+// const cookieAuth = require('hapi-auth-cookie');
 
 const home = {
   method:'GET',
@@ -13,7 +15,7 @@ const login = {
   method: 'GET',
   path: '/login',
   handler: (request, reply) => {
-    reply.redirect('https://github.com/login/oauth/authorize?client_id=56767f55a4d06d7f199b');
+    reply.redirect(`https://github.com/login/oauth/authorize?client_id=${process.env.CLIENT_ID}`);
   }
 }
 
@@ -23,13 +25,31 @@ const welcome = {
   handler: (req, reply) => {
     request.post(`https://github.com/login/oauth/access_token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${req.url.query.code}`,
     (err, response, body) => {
-      console.log('body: ' + body);
-      // body: access_token=50f49cc8e886fd5d7313e4ca0df0f5c7b9ef89fc&scope=&token_type=bearer
-      // if (){
-      //
-      // } else {
-      //
-      // }
+      console.log(qs.parse(body));
+      // console.log('body: ' + body);
+      const access_token = body.split('&')[0].split('=')[1];
+      const headers = {
+        'User-Agent': 'oauth_github_jwt',
+        Authorization: `token ${access_token}`
+      };
+      const url = 'https://api.github.com/user';
+
+      request.get({url:url, headers:headers}, (error, response, body) => {
+        const parsedBody = JSON.parse(body);
+        let options = {
+          'expiresIn': Date.now() + 24 * 60 * 60 * 1000,
+          'subject': 'github-data'
+        };
+        let payload = {
+          'user': {
+            'username': parsedBody.login,
+            'img_url': parsedBody.avatar_url,
+            'user_id': parsedBody.id
+          },
+          'accessToken': access_token
+        };
+        console.log(payload);
+      })
     })
     reply.redirect('/');
   }
