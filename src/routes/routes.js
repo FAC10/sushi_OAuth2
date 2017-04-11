@@ -1,6 +1,7 @@
 const request = require('request');
 const env = require('env2')('./config.env');
 const qs = require('querystring');
+const jwt = require('jsonwebtoken');
 // const cookieAuth = require('hapi-auth-cookie');
 
 const home = {
@@ -25,8 +26,7 @@ const welcome = {
   handler: (req, reply) => {
     request.post(`https://github.com/login/oauth/access_token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${req.url.query.code}`,
     (err, response, body) => {
-      console.log(qs.parse(body));
-      // console.log('body: ' + body);
+      // console.log(qs.parse(body));
       const access_token = body.split('&')[0].split('=')[1];
       const headers = {
         'User-Agent': 'oauth_github_jwt',
@@ -48,27 +48,48 @@ const welcome = {
           },
           'accessToken': access_token
         };
-        console.log(payload);
+
+        jwt.sign(payload, process.env.SECRET, options, (err, token) => {
+          let config = {
+            path: '/',
+            isSecure: process.env.NODE_ENV === 'PRODUCTION'
+          }
+
+          reply
+            .redirect('/secure')
+            .state('token', token, config);
+        });
       })
     })
     reply.redirect('/');
   }
 }
 
-const secret = {
+const secure = {
   method: 'GET',
-  path: '/secret',
+  path: '/secure',
   config: {
-    auth: 'session',
-    handler: (request, reply) => {
-      reply('This is the secret page');
-    }
-  }
+    auth: 'jwt'
+  },
+  handler: (req, reply) => {
+    reply('This is the secure page!');
+  },
 }
+
+// const secret = {
+//   method: 'GET',
+//   path: '/secret',
+//   config: {
+//     auth: 'session',
+//     handler: (request, reply) => {
+//       reply('This is the secret page');
+//     }
+//   }
+// }
 
 module.exports = [
   home,
   login,
   welcome,
-  secret
+  secure
 ]
