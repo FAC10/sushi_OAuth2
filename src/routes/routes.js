@@ -24,13 +24,31 @@ const welcome = {
     request.post(`https://github.com/login/oauth/access_token?client_id=${process.env.CLIENT_ID}&client_secret=${process.env.CLIENT_SECRET}&code=${req.url.query.code}`,
     (err, response, body) => {
       console.log('body: ' + body);
+      // body: access_token=50f49cc8e886fd5d7313e4ca0df0f5c7b9ef89fc&scope=&token_type=bearer
+      // if (){
+      //
+      // } else {
+      //
+      // }
     })
     reply.redirect('/');
+  }
+}
+
+const secret = {
+  method: 'GET',
+  path: '/secret',
+  config: {
+    auth: 'session',
+    handler: (request, reply) => {
+      reply('This is the secret page');
+    }
   }
 }
 
 module.exports = [
   home,
   login,
-  welcome
+  welcome,
+  secret
 ]
