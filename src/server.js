@@ -1,51 +1,35 @@
-'use strict'
 
 const hapi = require('hapi');
 const inert = require('inert');
-const server = new hapi.Server();
-const routes = require('./routes/routes');
-const cookieAuth = require('hapi-auth-cookie');
-const jwt = require('jsonwebtoken');
-const jwtAuth = require('hapi-auth-jwt2');
-
 const fs = require('fs');
-
-const validate = require('../helpers/validate.js');
-
-const tls = {
-  key: fs.readFileSync('./keys/key.pem'),
-  cert: fs.readFileSync('./keys/cert.pem')
-};
+const haj = require('hapi-auth-jwt2');
+require('env2')('./config.env');
+const routes = require('./routes/routes');
+const users = require ('../database/users.js')
+const server = new hapi.Server();
 
 server.connection({
-  host: 'localhost',
+  host: process.env.HOST || 'localhost',
   port: process.env.PORT || 3000,
-  tls: tls
+  tls: {
+    key: fs.readFileSync('./keys/key.pem'),
+    cert: fs.readFileSync('./keys/cert.pem')
+  }
 });
 
-server.register([inert, cookieAuth, jwtAuth], err => {
+server.register([inert, haj], (err) => {
   if (err) throw err;
 
-  // const options = {
-  //   password: '12345678912345678912345678912345',
-  //   cookie: 'sushi_cookie',
-  //   redirectTo: '/login',
-  //   ttl: 24 * 60 * 60 * 1000
-  // }
-
-  // server.auth.strategy('session', 'cookie', options);
-  // server.auth.default('session');
-
-  // const people = { // our "users database", use your github details here
-  //   1: {
-  //     id: 1,
-  //     name: 'Jen Jones'
-  //   }
-  // };
-  //
+  const validate = (token, request, callback) => {
+    console.log("token", token); // decoded token, it automatically decodes it
+    if (!users[token.user.user_id]) {
+      return callback(null, false);
+    }
+    return callback(null, true);
+  }
 
   const strategyOptions = {
-    key: process.env.SECRET,
+    key: process.env.JWT_SECRET,
     validateFunc: validate,
     verifyOptions: { algorithms: [ 'HS256' ] }
   }
